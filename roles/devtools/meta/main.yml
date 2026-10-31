@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   role_name: devtools
-  author: ansible-bootstrap-kit
+  author: GowthamReddy E
   description: Build/CI toolchain - Docker, git + git-lfs, make, Java, Maven, Gradle.
   license: MIT
   min_ansible_version: "2.14"
