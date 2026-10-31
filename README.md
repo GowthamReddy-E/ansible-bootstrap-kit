@@ -522,7 +522,7 @@ complete list:
 |---|---|---|
 | Java version (devtools role) | `roles/devtools/defaults/main.yml` | `devtools_java_version` |
 | Gradle version (devtools role) | `roles/devtools/defaults/main.yml` | `devtools_gradle_version` |
-| Docker version (devtools role) | `roles/devtools/defaults/main.yml` | `devtools_docker_version` (empty = latest; only pins `docker-ce`/`docker-ce-cli` — see note below) |
+| Docker version (devtools role) | `roles/devtools/defaults/main.yml` | `devtools_docker_version` (pinned to `29.9.2`, the latest stable as of 2026-10-31; only pins `docker-ce`/`docker-ce-cli` — see note below) |
 | ansible-core version (control node) | `requirements.txt` | the `ansible-core` line |
 | ansible-lint / yamllint versions (control node) | `requirements-dev.txt` | one line each |
 | Galaxy collection versions (`ansible.posix`, `community.general`) | `requirements.yml` | one entry each |
@@ -540,6 +540,15 @@ enough — nothing else needs touching.
 > If you need to pin those too, look up their exact version string
 > (`apt-cache madison <pkg>` / `dnf list --showduplicates <pkg>`) and extend
 > `roles/devtools/tasks/docker.yml` accordingly.
+>
+> **Apt caveat:** `devtools_docker_version` is matched literally
+> (`docker-ce=<value>` on apt), but apt's real version strings usually carry
+> an epoch + distro suffix (e.g. `5:29.9.2-1~ubuntu.24.04~noble`), not the
+> bare upstream number. If the install fails with "no package docker-ce=29.9.2
+> available" on a Debian/Ubuntu host, run `apt-cache madison docker-ce` and
+> set this variable to the exact string it reports. dnf (RHEL family) is
+> more forgiving of a bare `name-version` match. Set it back to `""` to
+> always install whatever is currently latest instead of a fixed pin.
 
 `requirements.txt`/`requirements-dev.txt`/`requirements.yml`
 stay as separate files because `pip` and `ansible-galaxy` are two different

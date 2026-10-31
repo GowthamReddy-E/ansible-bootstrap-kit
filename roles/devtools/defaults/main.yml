@@ -6,14 +6,18 @@
 # ---------------------------------------------------------------------------
 devtools_java_version: "17"
 devtools_gradle_version: "8.10.2"
-# Empty = always install the latest docker-ce/docker-ce-cli from Docker's repo.
-# Only pins docker-ce/docker-ce-cli (set this to the exact apt/dnf version
-# string for your distro, e.g. look it up with `apt-cache madison docker-ce`
-# or `dnf list --showduplicates docker-ce`). containerd.io and
-# docker-compose-plugin are released on their own independent version
-# numbers, not in lockstep with docker-ce, so they deliberately stay
-# unpinned here rather than being forced onto the same (wrong) version string.
-devtools_docker_version: ""
+# Pinned to the latest stable Docker Engine release as of 2026-10-31.
+# Only pins docker-ce/docker-ce-cli - containerd.io and docker-compose-plugin
+# are released on their own independent version numbers, not in lockstep
+# with docker-ce, so they deliberately stay unpinned regardless of this.
+#
+# CAVEAT: this must exactly match the version string in your distro's repo,
+# which on apt (Debian/Ubuntu) usually includes an epoch + distro suffix
+# (e.g. "5:29.9.2-1~ubuntu.24.04~noble"), not just "29.9.2" - check with
+# `apt-cache madison docker-ce` and adjust this value if the install fails.
+# dnf (RHEL family) is more forgiving of a bare "name-version" match.
+# Set to "" to go back to always-latest instead of a fixed pin.
+devtools_docker_version: "29.9.2"
 
 devtools_install_git: true
 devtools_install_git_lfs: true
