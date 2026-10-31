@@ -1,0 +1,8 @@
+{{ ansible_managed | comment }}
+
+  Host:        {{ inventory_hostname }}
+  Environment: {{ env | default('unknown') }}
+  OS:          {{ ansible_distribution }} {{ ansible_distribution_version }}
+
+  Managed by Ansible. Manual changes may be overwritten.
+

@@ -1,0 +1,11 @@
+---
+# Full convergence run: baseline, users, packages, security, and time sync.
+- name: Converge all managed hosts
+  hosts: all
+  become: true
+  roles:
+    - common
+    - users
+    - packages
+    - security
+    - ntp

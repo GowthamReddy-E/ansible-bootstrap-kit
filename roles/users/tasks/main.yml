@@ -1,0 +1,49 @@
+---
+- name: Create admin groups
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ admin_users | map(attribute='groups', default=[]) | select() | sum(start=[]) | unique }}"
+
+- name: Create admin users
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    groups: "{{ item.groups | default([]) }}"
+    append: true
+    shell: "{{ item.shell | default('/bin/bash') }}"
+    create_home: true
+    state: present
+  loop: "{{ admin_users }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Authorize SSH keys for admin users
+  ansible.posix.authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ item.ssh_keys | join('\n') }}"
+    state: present
+    exclusive: true
+  loop: "{{ admin_users }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: item.ssh_keys | default([]) | length > 0
+
+- name: Grant passwordless sudo to admin users
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/90-{{ item.name }}"
+    content: "{{ item.name }} ALL=(ALL) NOPASSWD:ALL\n"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: "visudo -cf %s"
+  loop: "{{ admin_users }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: item.sudo_nopasswd | default(false)
+
+- name: Remove deprecated users
+  ansible.builtin.user:
+    name: "{{ item }}"
+    state: absent
+    remove: true
+  loop: "{{ removed_users }}"

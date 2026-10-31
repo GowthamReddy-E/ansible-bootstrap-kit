@@ -1,0 +1,12 @@
+---
+security_ssh_permit_root_login: "no"
+security_ssh_password_authentication: "no"
+security_ssh_port: 22
+
+security_install_fail2ban: true
+
+security_firewall_enabled: true
+security_firewall_allowed_tcp_ports:
+  - "{{ security_ssh_port }}"
+  - 80
+  - 443

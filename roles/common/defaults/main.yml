@@ -1,0 +1,8 @@
+---
+timezone: UTC
+common_packages:
+  - curl
+  - vim
+  - git
+  - htop
+  - unzip

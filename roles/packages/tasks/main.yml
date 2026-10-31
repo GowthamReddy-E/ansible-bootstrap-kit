@@ -1,0 +1,33 @@
+---
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  when:
+    - ansible_os_family == "Debian"
+    - packages_update_cache
+
+- name: Update dnf/yum cache
+  ansible.builtin.dnf:
+    update_cache: true
+  when:
+    - ansible_os_family == "RedHat"
+    - packages_update_cache
+
+- name: Upgrade all packages
+  ansible.builtin.package:
+    name: "*"
+    state: latest
+  when: packages_upgrade
+
+- name: Install extra packages
+  ansible.builtin.package:
+    name: "{{ packages_extra }}"
+    state: present
+  when: packages_extra | length > 0
+
+- name: Remove unwanted packages
+  ansible.builtin.package:
+    name: "{{ packages_remove }}"
+    state: absent
+  when: packages_remove | length > 0

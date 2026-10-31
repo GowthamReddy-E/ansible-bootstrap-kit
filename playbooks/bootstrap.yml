@@ -1,0 +1,9 @@
+---
+# Initial setup for brand-new hosts: baseline config, admin users, and hardening.
+- name: Bootstrap managed hosts
+  hosts: all
+  become: true
+  roles:
+    - common
+    - users
+    - security

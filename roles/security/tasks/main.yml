@@ -1,0 +1,65 @@
+---
+- name: Harden sshd_config
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    validate: "sshd -t -f %s"
+  loop:
+    - regexp: "^#?PermitRootLogin"
+      line: "PermitRootLogin {{ security_ssh_permit_root_login }}"
+    - regexp: "^#?PasswordAuthentication"
+      line: "PasswordAuthentication {{ security_ssh_password_authentication }}"
+    - regexp: "^#?Port"
+      line: "Port {{ security_ssh_port }}"
+  notify: Restart sshd
+
+- name: Install fail2ban
+  ansible.builtin.package:
+    name: fail2ban
+    state: present
+  when: security_install_fail2ban
+
+- name: Ensure fail2ban is enabled and running
+  ansible.builtin.service:
+    name: fail2ban
+    state: started
+    enabled: true
+  when: security_install_fail2ban
+
+- name: Install ufw (Debian family firewall)
+  ansible.builtin.package:
+    name: ufw
+    state: present
+  when:
+    - security_firewall_enabled
+    - ansible_os_family == "Debian"
+
+- name: Allow required ports through ufw
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop: "{{ security_firewall_allowed_tcp_ports }}"
+  when:
+    - security_firewall_enabled
+    - ansible_os_family == "Debian"
+
+- name: Enable ufw
+  community.general.ufw:
+    state: enabled
+    policy: deny
+  when:
+    - security_firewall_enabled
+    - ansible_os_family == "Debian"
+
+- name: Allow required ports through firewalld
+  ansible.posix.firewalld:
+    port: "{{ item }}/tcp"
+    permanent: true
+    immediate: true
+    state: enabled
+  loop: "{{ security_firewall_allowed_tcp_ports }}"
+  when:
+    - security_firewall_enabled
+    - ansible_os_family == "RedHat"

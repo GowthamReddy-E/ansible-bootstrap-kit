@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  role_name: common
+  description: Baseline configuration applied to every managed host (hostname, timezone, base packages, MOTD).
+  company: null
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: EL
+      versions: [8, 9]
+    - name: Ubuntu
+      versions: [focal, jammy, noble]
+    - name: Debian
+      versions: [bullseye, bookworm]
+
+dependencies: []

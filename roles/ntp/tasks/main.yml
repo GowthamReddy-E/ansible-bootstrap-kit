@@ -1,0 +1,20 @@
+---
+- name: Install chrony
+  ansible.builtin.package:
+    name: chrony
+    state: present
+
+- name: Configure chrony servers
+  ansible.builtin.template:
+    src: chrony.conf.j2
+    dest: "{{ '/etc/chrony/chrony.conf' if ansible_os_family == 'Debian' else '/etc/chrony.conf' }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart chrony
+
+- name: Ensure chrony is enabled and running
+  ansible.builtin.service:
+    name: "{{ 'chrony' if ansible_os_family == 'Debian' else 'chronyd' }}"
+    state: started
+    enabled: true

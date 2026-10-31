@@ -15,6 +15,9 @@ inventories/*/group_vars/**/vault*.yml
 .env
 ansible.cfg.local
 
+# Ansible Galaxy (installed via: ansible-galaxy collection install -r requirements.yml)
+collections/
+
 # Python
 __pycache__/
 *.pyc

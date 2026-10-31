@@ -1,0 +1,12 @@
+---
+# Connectivity + facts sanity check for a new inventory/host.
+- name: Verify connectivity
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Ping
+      ansible.builtin.ping:
+
+    - name: Show OS facts
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} -> {{ ansible_distribution }} {{ ansible_distribution_version }}"
