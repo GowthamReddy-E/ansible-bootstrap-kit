@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  role_name: devtools
+  author: ansible-bootstrap-kit
+  description: Build/CI toolchain - Docker, git + git-lfs, make, Java, Maven, Gradle.
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: EL
+      versions: [all]
+    - name: Ubuntu
+      versions: [all]
+    - name: Debian
+      versions: [all]
+
+dependencies: []

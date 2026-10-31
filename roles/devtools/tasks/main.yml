@@ -1,0 +1,43 @@
+---
+- name: Install git
+  ansible.builtin.package:
+    name: git
+    state: present
+  when: devtools_install_git
+
+- name: Install git-lfs
+  ansible.builtin.package:
+    name: git-lfs
+    state: present
+  when: devtools_install_git and devtools_install_git_lfs
+
+- name: Initialize git-lfs system-wide
+  ansible.builtin.command: git lfs install --system
+  changed_when: false
+  when: devtools_install_git and devtools_install_git_lfs
+
+- name: Install make
+  ansible.builtin.package:
+    name: make
+    state: present
+  when: devtools_install_make
+
+- name: Install Java (OpenJDK)
+  ansible.builtin.package:
+    name: "{{ devtools_java_package_debian if ansible_os_family == 'Debian' else devtools_java_package_redhat }}"
+    state: present
+  when: devtools_install_java
+
+- name: Install Maven
+  ansible.builtin.package:
+    name: maven
+    state: present
+  when: devtools_install_maven
+
+- name: Install Gradle
+  ansible.builtin.include_tasks: gradle.yml
+  when: devtools_install_gradle
+
+- name: Install Docker
+  ansible.builtin.include_tasks: docker.yml
+  when: devtools_install_docker

@@ -1,0 +1,72 @@
+---
+# Debian/Ubuntu: add Docker's official apt repo (https://docs.docker.com/engine/install/)
+- name: Install prerequisite packages for the Docker apt repo
+  ansible.builtin.package:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Ensure /etc/apt/keyrings exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+  when: ansible_os_family == "Debian"
+
+- name: Download the Docker apt GPG key
+  ansible.builtin.get_url:
+    url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+  when: ansible_os_family == "Debian"
+
+- name: Add the Docker apt repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [arch={{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}
+      signed-by=/etc/apt/keyrings/docker.asc]
+      https://download.docker.com/linux/{{ ansible_distribution | lower }}
+      {{ ansible_distribution_release }} stable
+    filename: docker
+    state: present
+  register: devtools_docker_apt_repo
+  when: ansible_os_family == "Debian"
+
+- name: Refresh apt cache after adding the Docker repo
+  ansible.builtin.apt:
+    update_cache: true
+  when:
+    - ansible_os_family == "Debian"
+    - devtools_docker_apt_repo.changed
+
+# RHEL/CentOS/Rocky/Alma: add Docker's official yum/dnf repo
+- name: Add the Docker CE yum/dnf repository
+  ansible.builtin.yum_repository:
+    name: docker-ce-stable
+    description: Docker CE Stable - $basearch
+    baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+    gpgcheck: true
+    gpgkey: https://download.docker.com/linux/centos/gpg
+    enabled: true
+  when: ansible_os_family == "RedHat"
+
+- name: Install Docker Engine + Compose plugin
+  ansible.builtin.package:
+    name: "{{ devtools_docker_packages }}"
+    state: present
+
+- name: Ensure the docker service is enabled and running
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Add users to the docker group
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  loop: "{{ devtools_docker_users }}"

@@ -1,0 +1,23 @@
+---
+devtools_install_git: true
+devtools_install_git_lfs: true
+devtools_install_make: true
+
+devtools_install_java: true
+devtools_java_package_debian: openjdk-17-jdk
+devtools_java_package_redhat: java-17-openjdk-devel
+
+devtools_install_maven: true
+
+devtools_install_gradle: true
+devtools_gradle_version: "8.10.2"
+devtools_gradle_install_root: /opt/gradle
+
+devtools_install_docker: true
+devtools_docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-compose-plugin
+# Users to add to the `docker` group (so they can run docker without sudo).
+devtools_docker_users: []

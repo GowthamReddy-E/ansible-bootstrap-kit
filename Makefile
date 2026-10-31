@@ -8,7 +8,7 @@ ANSIBLE_GALAXY    := $(VENV)/bin/ansible-galaxy
 YAMLLINT          := $(VENV)/bin/yamllint
 ANSIBLE_LINT      := $(VENV)/bin/ansible-lint
 
-.PHONY: setup install lint ping bootstrap site clean
+.PHONY: setup install lint ping bootstrap site devtools clean
 
 # Everything below depends on `setup`, so a fresh clone needs nothing but
 # python3 installed system-wide: no sudo, no system package manager, no
@@ -37,6 +37,9 @@ bootstrap: setup
 
 site: setup
 	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/site.yml
+
+devtools: setup
+	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/devtools.yml
 
 clean:
 	rm -rf $(VENV) collections

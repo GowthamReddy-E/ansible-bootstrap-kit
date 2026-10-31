@@ -1,0 +1,30 @@
+---
+- name: Ensure unzip is present (required to extract the Gradle distribution)
+  ansible.builtin.package:
+    name: unzip
+    state: present
+
+- name: Ensure Gradle install root exists
+  ansible.builtin.file:
+    path: "{{ devtools_gradle_install_root }}"
+    state: directory
+    mode: "0755"
+
+- name: Download Gradle {{ devtools_gradle_version }}
+  ansible.builtin.get_url:
+    url: "https://services.gradle.org/distributions/gradle-{{ devtools_gradle_version }}-bin.zip"
+    dest: "/tmp/gradle-{{ devtools_gradle_version }}-bin.zip"
+    mode: "0644"
+
+- name: Extract Gradle into {{ devtools_gradle_install_root }}
+  ansible.builtin.unarchive:
+    src: "/tmp/gradle-{{ devtools_gradle_version }}-bin.zip"
+    dest: "{{ devtools_gradle_install_root }}"
+    remote_src: true
+    creates: "{{ devtools_gradle_install_root }}/gradle-{{ devtools_gradle_version }}"
+
+- name: Symlink the active Gradle version into /usr/local/bin
+  ansible.builtin.file:
+    src: "{{ devtools_gradle_install_root }}/gradle-{{ devtools_gradle_version }}/bin/gradle"
+    dest: /usr/local/bin/gradle
+    state: link

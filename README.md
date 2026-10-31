@@ -305,12 +305,22 @@ Only move on to step 5 once every host shows success here.
 
 ## 5. Run the playbooks
 
-There are two playbooks, for two different situations:
+There are three playbooks:
 
 | Playbook            | When to use it                                                              | Roles it runs                          |
 |----------------------|------------------------------------------------------------------------------|-----------------------------------------|
 | `playbooks/bootstrap.yml` | **First time** touching a brand-new server: create admin users, apply baseline config, lock down SSH. | `common`, `users`, `security`          |
 | `playbooks/site.yml`      | **Every time after that** — the full, repeatable convergence run (also keeps packages and NTP in sync). | `common`, `users`, `packages`, `security`, `ntp` |
+| `playbooks/devtools.yml`  | **Opt-in**, only on hosts that need a build/CI toolchain (e.g. not DB servers) — run with `--limit`. | `devtools`                             |
+
+```bash
+# install Docker + git/git-lfs + make + Java + Maven + Gradle on every host in the inventory
+make devtools ENV=staging
+
+# or limit it to just the hosts that need it (the `make` target has no
+# --limit passthrough, so use ansible-playbook directly for that):
+.venv/bin/ansible-playbook -i inventories/staging/hosts.yml playbooks/devtools.yml --limit webservers
+```
 
 ### Always dry-run first
 
@@ -417,7 +427,7 @@ system is already in the desired state — that's the goal.
 ├── requirements.txt              # pinned Python deps (ansible-core) for the local venv
 ├── requirements-dev.txt          # + lint tools (ansible-lint, yamllint), for `make lint`
 ├── requirements.yml              # Galaxy collections this kit depends on
-├── Makefile                      # setup / lint / ping / bootstrap / site / clean shortcuts
+├── Makefile                      # setup / lint / ping / bootstrap / site / devtools / clean shortcuts
 ├── .venv/                        # created by `make setup` — local Ansible install, gitignored
 ├── inventories/
 │   ├── staging/
@@ -431,13 +441,15 @@ system is already in the desired state — that's the goal.
 ├── playbooks/
 │   ├── ping.yml                   # connectivity + fact-gathering sanity check
 │   ├── bootstrap.yml              # first-run setup: common + users + security
-│   └── site.yml                   # full convergence: all roles
+│   ├── site.yml                   # full convergence: common/users/packages/security/ntp
+│   └── devtools.yml               # opt-in build/CI toolchain, run with --limit
 ├── roles/
 │   ├── common/                    # hostname, timezone, base packages, MOTD
 │   ├── users/                     # admin users, SSH keys, sudo access
 │   ├── packages/                  # OS package cache/upgrade/install/remove
 │   ├── security/                  # SSH hardening, fail2ban, firewall
-│   └── ntp/                       # chrony time sync
+│   ├── ntp/                       # chrony time sync
+│   └── devtools/                  # Docker, git + git-lfs, make, Java, Maven, Gradle
 ├── files/, templates/             # project-wide static files / Jinja templates
 ├── library/, filter_plugins/      # custom modules / filters, if you add any
 └── docs/                          # extra notes
@@ -460,6 +472,9 @@ make bootstrap ENV=staging
 
 # full convergence run of every role
 make site ENV=production
+
+# opt-in: build/CI toolchain (Docker, git/git-lfs, make, Java, Maven, Gradle)
+make devtools ENV=staging
 ```
 
 `ENV` defaults to `staging` and selects `inventories/$(ENV)/hosts.yml`. You
@@ -483,6 +498,7 @@ ansible-playbook -i inventories/production/hosts.yml playbooks/bootstrap.yml --l
 | `packages` | Package cache refresh, optional full upgrade, extra installs/removals |
 | `security` | SSH hardening (`PermitRootLogin`, password auth), fail2ban, firewall |
 | `ntp`      | chrony installation and time server configuration                   |
+| `devtools` | Docker (+ Compose plugin), git + git-lfs, make, Java (OpenJDK), Maven, Gradle |
 
 All roles expose their tunables via `roles/<role>/defaults/main.yml` — override
 per-environment in `inventories/<env>/group_vars/all/main.yml`, or per-host in

@@ -1,0 +1,10 @@
+---
+# Build/CI toolchain: Docker, git + git-lfs, make, Java, Maven, Gradle.
+# Not every host needs this (e.g. DB servers) - run with --limit to target
+# just the hosts that do, e.g.:
+#   ansible-playbook -i inventories/staging/hosts.yml playbooks/devtools.yml --limit webservers
+- name: Install build/CI toolchain
+  hosts: all
+  become: true
+  roles:
+    - devtools
