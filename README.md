@@ -450,13 +450,21 @@ system is already in the desired state — that's the goal.
 │   ├── security/                  # SSH hardening, fail2ban, firewall
 │   ├── ntp/                       # chrony time sync
 │   └── devtools/                  # Docker, git + git-lfs, make, Java, Maven, Gradle
-├── files/, templates/             # project-wide static files / Jinja templates
-├── library/, filter_plugins/      # custom modules / filters, if you add any
-└── docs/                          # extra notes
+└── collections/                  # created by `make setup` - Galaxy deps, gitignored
 ```
 
 Each environment is a separate inventory directory under `inventories/`, so
 `group_vars`/`host_vars` never leak between staging and production.
+
+There's deliberately no top-level `files/`, `templates/`, `library/`,
+`filter_plugins/`, or `docs/` — every role already has its own
+`roles/<role>/files/`/`roles/<role>/templates/` where it actually needs one
+(e.g. `roles/common/templates/motd.j2`), and there's no custom module,
+filter, or extra doc in this repo yet to justify the others. If you add a
+custom Ansible module or Jinja filter later, just create `library/` or
+`filter_plugins/` at the repo root when you need it — Ansible auto-discovers
+them by that exact name with zero config, so there's no setup cost to
+creating them on demand instead of carrying them around empty.
 
 ## Usage
 
