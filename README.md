@@ -514,14 +514,26 @@ complete list:
 |---|---|---|
 | Java version (devtools role) | `roles/devtools/defaults/main.yml` | `devtools_java_version` |
 | Gradle version (devtools role) | `roles/devtools/defaults/main.yml` | `devtools_gradle_version` |
-| Docker packages (devtools role) | `roles/devtools/defaults/main.yml` | `devtools_docker_packages` (unpinned — always installs latest stable from Docker's repo) |
+| Docker version (devtools role) | `roles/devtools/defaults/main.yml` | `devtools_docker_version` (empty = latest; only pins `docker-ce`/`docker-ce-cli` — see note below) |
 | ansible-core version (control node) | `requirements.txt` | the `ansible-core` line |
 | ansible-lint / yamllint versions (control node) | `requirements-dev.txt` | one line each |
 | Galaxy collection versions (`ansible.posix`, `community.general`) | `requirements.yml` | one entry each |
 
-The Java/Gradle variables flow into package names and download URLs via
-Jinja templating in `roles/devtools/tasks/`, so changing the variable is
-enough — nothing else needs touching. `requirements.txt`/`requirements-dev.txt`/`requirements.yml`
+The Java/Gradle/Docker variables flow into package names and download URLs
+via Jinja templating in `roles/devtools/tasks/`, so changing the variable is
+enough — nothing else needs touching.
+
+> **Why Docker is different:** `docker-ce` and `docker-ce-cli` are always
+> released together with the same version number, so `devtools_docker_version`
+> pins both. `containerd.io` and `docker-compose-plugin` are versioned
+> independently by their own upstream projects — forcing them onto the same
+> version string as `docker-ce` would just fail to resolve — so they're
+> deliberately left unpinned (always latest) regardless of this variable.
+> If you need to pin those too, look up their exact version string
+> (`apt-cache madison <pkg>` / `dnf list --showduplicates <pkg>`) and extend
+> `roles/devtools/tasks/docker.yml` accordingly.
+
+`requirements.txt`/`requirements-dev.txt`/`requirements.yml`
 stay as separate files because `pip` and `ansible-galaxy` are two different
 tools that each expect their own native format — that's normal, not
 drift risk, since each value still only exists in one file.

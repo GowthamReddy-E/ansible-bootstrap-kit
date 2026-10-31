@@ -55,8 +55,15 @@
 
 - name: Install Docker Engine + Compose plugin
   ansible.builtin.package:
-    name: "{{ devtools_docker_packages }}"
+    name: >-
+      {{ item
+         + ('=' + devtools_docker_version if (devtools_docker_version and ansible_os_family == 'Debian' and item in ['docker-ce', 'docker-ce-cli'])
+            else '-' + devtools_docker_version if (devtools_docker_version and ansible_os_family == 'RedHat' and item in ['docker-ce', 'docker-ce-cli'])
+            else '') }}
     state: present
+  loop: "{{ devtools_docker_packages }}"
+  loop_control:
+    label: "{{ item }}"
 
 - name: Ensure the docker service is enabled and running
   ansible.builtin.service:
