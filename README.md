@@ -101,18 +101,22 @@ all:
   children:
     webservers:
       hosts:
-        web01.staging.example.com:
+        gmr-stg-01:
+        gmr-stg-02:
     dbservers:
       hosts:
-        db01.staging.example.com:
+        gmr-stg-03:
   vars:
     env: staging
 ```
 
 - `webservers` and `dbservers` are **groups** — just names you invent to
   target playbooks/variables at a subset of hosts.
-- Each line under `hosts:` is one server. Replace the placeholder names with
-  your real hostnames or IP addresses, e.g.:
+- Each line under `hosts:` is one server. `gmr-stg-01`/`02`/`03` here follow
+  an org naming convention (`<project>-<env>-<number>`) — `inventories/production/hosts.yml`
+  mirrors it as `prd-gmr-01`/`02`/`03`. These names must resolve via DNS or
+  `/etc/hosts` on your control node; if yours don't, either add them there or
+  swap in real hostnames/IP addresses instead, e.g.:
 
 ```yaml
 all:
@@ -135,7 +139,7 @@ Just add another key under `children:`:
 ```yaml
     loadbalancers:
       hosts:
-        10.0.3.10:
+        gmr-stg-04:
 ```
 
 Groups matter because:
@@ -168,10 +172,10 @@ ansible-inventory -i inventories/staging/hosts.yml --graph
 ```
 @all:
   |--@webservers:
-  |  |--10.0.1.10
-  |  |--10.0.1.11
+  |  |--gmr-stg-01
+  |  |--gmr-stg-02
   |--@dbservers:
-  |  |--10.0.2.10
+  |  |--gmr-stg-03
 ```
 
 ---
@@ -200,20 +204,20 @@ You still need a password (or existing key) the *first* time, to install
 your new key:
 
 ```bash
-ssh-copy-id -i ~/.ssh/id_ed25519.pub user@10.0.1.10
+ssh-copy-id -i ~/.ssh/id_ed25519.pub user@gmr-stg-01
 ```
 
 If `ssh-copy-id` isn't available (e.g. some minimal images), do it manually:
 
 ```bash
-cat ~/.ssh/id_ed25519.pub | ssh user@10.0.1.10 \
+cat ~/.ssh/id_ed25519.pub | ssh user@gmr-stg-01 \
   "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
 ```
 
 ### Step 3 — prove it works without a password
 
 ```bash
-ssh user@10.0.1.10
+ssh user@gmr-stg-01
 ```
 
 You should land in a shell with **no password prompt**. If it still asks for
@@ -240,7 +244,7 @@ Ansible will fail or hang. Set up passwordless sudo for your SSH user **on
 the target**, once:
 
 ```bash
-ssh user@10.0.1.10
+ssh user@gmr-stg-01
 echo "user ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/90-user
 sudo visudo -cf /etc/sudoers.d/90-user   # validates the syntax, must say "OK"
 exit
@@ -275,7 +279,7 @@ ansible all -i inventories/staging/hosts.yml -m ping
 Expected output per host:
 
 ```
-10.0.1.10 | SUCCESS => {
+gmr-stg-01 | SUCCESS => {
     "ansible_facts": {
         "discovered_interpreter_python": "/usr/bin/python3"
     },
@@ -341,7 +345,7 @@ to use — it defaults to `staging` if you don't pass it.
 
 | Flag | What it does |
 |------|---------------|
-| `--limit webservers` | Only run against hosts in the `webservers` group (or a single host: `--limit 10.0.1.10`) |
+| `--limit webservers` | Only run against hosts in the `webservers` group (or a single host: `--limit gmr-stg-01`) |
 | `-v`, `-vvv` | More verbose output — `-vvv` shows the actual module arguments and SSH commands, great for debugging |
 | `--check --diff` | Dry run, shows what would change (see above) |
 | `--tags` / `--skip-tags` | Run (or skip) only tasks tagged a certain way, if you add tags |
@@ -351,7 +355,7 @@ Example — dry-run just the hardening step against one web server, verbosely:
 
 ```bash
 ansible-playbook -i inventories/staging/hosts.yml playbooks/site.yml \
-  --limit web01.staging.example.com --tags security --check --diff -vv
+  --limit gmr-stg-01 --tags security --check --diff -vv
 ```
 
 ---
