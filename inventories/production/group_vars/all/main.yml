@@ -1,5 +1,5 @@
 ---
-timezone: UTC
+common_timezone: UTC
 ntp_servers:
   - 0.pool.ntp.org
   - 1.pool.ntp.org
@@ -11,7 +11,7 @@ common_packages:
   - htop
   - unzip
 
-admin_users:
+users_admin_users:
   - name: ansible
     groups: [sudo]
     shell: /bin/bash

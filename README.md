@@ -33,37 +33,61 @@ can be any Linux distro supported by the roles (Debian/Ubuntu or RHEL/Rocky/Alma
 
 ---
 
-## 1. Install Ansible (control node only)
+## 1. Set up the toolchain (control node only — one command, nothing system-wide)
+
+This kit is fully self-contained: you do **not** need `sudo apt install ansible`
+or `sudo dnf install ansible-core` on your machine. The only prerequisite is
+`python3` (with the `venv` module, which is part of the standard library on
+every mainstream distro). Everything else — Ansible itself, the lint tools,
+the Galaxy collections — gets installed *inside this repo*, in a local
+`.venv/` and `collections/` directory, and is never touched outside it.
 
 ```bash
-# Debian/Ubuntu
-sudo apt update && sudo apt install -y ansible
-
-# RHEL/CentOS/Rocky/Alma
-sudo dnf install -y ansible-core
-
-# macOS
-brew install ansible
-
-# or, in a venv (works everywhere)
-python3 -m venv .venv && source .venv/bin/activate
-pip install ansible
+make setup
 ```
 
-Confirm it's installed:
+This one command:
+1. Creates a virtualenv at `.venv/` (local to this repo, gitignored).
+2. Installs `ansible-core`, `ansible-lint`, and `yamllint` into it from
+   `requirements.txt` / `requirements-dev.txt` — pinned versions, so every
+   clone of this repo gets the same toolchain.
+3. Installs the Galaxy collections this kit depends on (`ansible.posix`,
+   `community.general` — used for things like the firewall and timezone
+   modules) into `collections/` from `requirements.yml`.
+
+You never need to run `make setup` manually in normal use — every other
+`make` target (`ping`, `bootstrap`, `site`, `lint`) depends on it and will
+run it automatically the first time, then reuse it. It's safe to re-run any
+time (e.g. after someone updates `requirements.txt`).
+
+Confirm it worked:
 
 ```bash
-ansible --version
+.venv/bin/ansible --version
 ```
 
-Then install the Galaxy collections this kit depends on (`ansible.posix`,
-`community.general` — used for things like the firewall and timezone
-modules):
+If you ever want to wipe it and start over (e.g. to test a clean clone):
 
 ```bash
-make install
-# same as: ansible-galaxy collection install -r requirements.yml
+make clean   # removes .venv/ and collections/
 ```
+
+### Activate the venv (so you can type `ansible-playbook` instead of `.venv/bin/ansible-playbook`)
+
+Every raw command in the rest of this README (`ansible`, `ansible-playbook`,
+`ansible-inventory`, `ansible-vault`, ...) assumes the venv is active in your
+shell. Do this once per terminal session, after `make setup` has run at least
+once:
+
+```bash
+source .venv/bin/activate
+```
+
+Your prompt will usually change to show `(.venv)`. Run `deactivate` to leave
+it. If you'd rather not activate and just run one-off commands, prefix them
+with `.venv/bin/` instead, e.g. `.venv/bin/ansible-playbook ...` — that's
+exactly what the `make` targets do under the hood, which is why they work
+with no activation needed.
 
 ---
 
@@ -386,8 +410,11 @@ system is already in the desired state — that's the goal.
 ```
 .
 ├── ansible.cfg                  # project-local Ansible config (points at staging by default)
+├── requirements.txt              # pinned Python deps (ansible-core) for the local venv
+├── requirements-dev.txt          # + lint tools (ansible-lint, yamllint), for `make lint`
 ├── requirements.yml              # Galaxy collections this kit depends on
-├── Makefile                      # install / lint / ping / bootstrap / site shortcuts
+├── Makefile                      # setup / lint / ping / bootstrap / site / clean shortcuts
+├── .venv/                        # created by `make setup` — local Ansible install, gitignored
 ├── inventories/
 │   ├── staging/
 │   │   ├── hosts.yml              # staging inventory (groups + hosts)
@@ -418,8 +445,8 @@ Each environment is a separate inventory directory under `inventories/`, so
 ## Usage
 
 ```bash
-# one-time: install required collections (ansible.posix, community.general)
-make install
+# one-time: create .venv/ + collections/, install Ansible/lint tools/collections into them
+make setup
 
 # sanity-check connectivity to an inventory
 make ping ENV=staging
@@ -431,9 +458,12 @@ make bootstrap ENV=staging
 make site ENV=production
 ```
 
-`ENV` defaults to `staging` and selects `inventories/$(ENV)/hosts.yml`.
+`ENV` defaults to `staging` and selects `inventories/$(ENV)/hosts.yml`. You
+don't need to run `make setup` separately — `ping`/`bootstrap`/`site`/`lint`
+all depend on it and will set things up automatically on first use.
 
-Equivalent raw commands:
+Equivalent raw commands (after `source .venv/bin/activate`, see
+[step 1](#1-set-up-the-toolchain-control-node-only--one-command-nothing-system-wide)):
 
 ```bash
 ansible-playbook -i inventories/staging/hosts.yml playbooks/site.yml

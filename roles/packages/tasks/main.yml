@@ -14,7 +14,7 @@
     - ansible_os_family == "RedHat"
     - packages_update_cache
 
-- name: Upgrade all packages
+- name: Upgrade all packages  # noqa: package-latest
   ansible.builtin.package:
     name: "*"
     state: latest

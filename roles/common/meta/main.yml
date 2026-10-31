@@ -1,16 +1,16 @@
 ---
 galaxy_info:
   role_name: common
+  author: ansible-bootstrap-kit
   description: Baseline configuration applied to every managed host (hostname, timezone, base packages, MOTD).
-  company: null
   license: MIT
   min_ansible_version: "2.14"
   platforms:
     - name: EL
-      versions: [8, 9]
+      versions: [all]
     - name: Ubuntu
-      versions: [focal, jammy, noble]
+      versions: [all]
     - name: Debian
-      versions: [bullseye, bookworm]
+      versions: [all]
 
 dependencies: []

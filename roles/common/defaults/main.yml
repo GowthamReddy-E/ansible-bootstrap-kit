@@ -1,5 +1,5 @@
 ---
-timezone: UTC
+common_timezone: UTC
 common_packages:
   - curl
   - vim

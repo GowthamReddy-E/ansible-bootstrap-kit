@@ -1,12 +1,12 @@
 ---
 # List of users to create, e.g.:
-# admin_users:
+# users_admin_users:
 #   - name: jdoe
 #     groups: [sudo]
 #     shell: /bin/bash
 #     ssh_keys:
 #       - "ssh-ed25519 AAAA... jdoe@laptop"
-admin_users: []
+users_admin_users: []
 
 # Users that should be explicitly removed from managed hosts
-removed_users: []
+users_removed_users: []

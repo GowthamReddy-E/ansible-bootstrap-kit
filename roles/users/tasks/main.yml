@@ -3,7 +3,7 @@
   ansible.builtin.group:
     name: "{{ item }}"
     state: present
-  loop: "{{ admin_users | map(attribute='groups', default=[]) | select() | sum(start=[]) | unique }}"
+  loop: "{{ users_admin_users | map(attribute='groups', default=[]) | select() | sum(start=[]) | unique }}"
 
 - name: Create admin users
   ansible.builtin.user:
@@ -13,7 +13,7 @@
     shell: "{{ item.shell | default('/bin/bash') }}"
     create_home: true
     state: present
-  loop: "{{ admin_users }}"
+  loop: "{{ users_admin_users }}"
   loop_control:
     label: "{{ item.name }}"
 
@@ -23,7 +23,7 @@
     key: "{{ item.ssh_keys | join('\n') }}"
     state: present
     exclusive: true
-  loop: "{{ admin_users }}"
+  loop: "{{ users_admin_users }}"
   loop_control:
     label: "{{ item.name }}"
   when: item.ssh_keys | default([]) | length > 0
@@ -36,7 +36,7 @@
     group: root
     mode: "0440"
     validate: "visudo -cf %s"
-  loop: "{{ admin_users }}"
+  loop: "{{ users_admin_users }}"
   loop_control:
     label: "{{ item.name }}"
   when: item.sudo_nopasswd | default(false)
@@ -46,4 +46,4 @@
     name: "{{ item }}"
     state: absent
     remove: true
-  loop: "{{ removed_users }}"
+  loop: "{{ users_removed_users }}"

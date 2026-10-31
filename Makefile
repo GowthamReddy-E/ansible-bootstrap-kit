@@ -1,20 +1,42 @@
 ENV ?= staging
 INVENTORY = inventories/$(ENV)/hosts.yml
 
-.PHONY: install lint ping bootstrap site
+VENV   := .venv
+PYTHON := python3
+ANSIBLE_PLAYBOOK := $(VENV)/bin/ansible-playbook
+ANSIBLE_GALAXY    := $(VENV)/bin/ansible-galaxy
+YAMLLINT          := $(VENV)/bin/yamllint
+ANSIBLE_LINT      := $(VENV)/bin/ansible-lint
 
-install:
-	ansible-galaxy collection install -r requirements.yml
+.PHONY: setup install lint ping bootstrap site clean
 
-lint:
-	yamllint .
-	ansible-lint
+# Everything below depends on `setup`, so a fresh clone needs nothing but
+# python3 installed system-wide: no sudo, no system package manager, no
+# global pip install. Ansible itself lives in .venv/, Galaxy collections
+# live in collections/ - both local to this repo and gitignored.
+setup: $(VENV)/bin/activate
 
-ping:
-	ansible-playbook -i $(INVENTORY) playbooks/ping.yml
+$(VENV)/bin/activate: requirements.txt requirements-dev.txt requirements.yml
+	$(PYTHON) -m venv $(VENV)
+	$(VENV)/bin/pip install --upgrade pip
+	$(VENV)/bin/pip install -r requirements-dev.txt
+	$(ANSIBLE_GALAXY) collection install -r requirements.yml
+	touch $(VENV)/bin/activate
 
-bootstrap:
-	ansible-playbook -i $(INVENTORY) playbooks/bootstrap.yml
+install: setup
 
-site:
-	ansible-playbook -i $(INVENTORY) playbooks/site.yml
+lint: setup
+	$(YAMLLINT) .
+	$(ANSIBLE_LINT)
+
+ping: setup
+	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/ping.yml
+
+bootstrap: setup
+	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/bootstrap.yml
+
+site: setup
+	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/site.yml
+
+clean:
+	rm -rf $(VENV) collections
