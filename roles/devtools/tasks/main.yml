@@ -22,9 +22,11 @@
     state: present
   when: devtools_install_make
 
-- name: Install Java (OpenJDK)
+- name: Install Java (OpenJDK {{ devtools_java_version }})
   ansible.builtin.package:
-    name: "{{ devtools_java_package_debian if ansible_os_family == 'Debian' else devtools_java_package_redhat }}"
+    name: >-
+      {{ 'openjdk-' + devtools_java_version + '-jdk' if ansible_os_family == 'Debian'
+         else 'java-' + devtools_java_version + '-openjdk-devel' }}
     state: present
   when: devtools_install_java
 

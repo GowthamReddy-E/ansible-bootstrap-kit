@@ -1,16 +1,21 @@
 ---
+# ---------------------------------------------------------------------------
+# Pinned tool versions - the ONLY place to edit when bumping a version.
+# Everything that needs the version (package names, download URLs) derives
+# from these two variables instead of repeating the number elsewhere.
+# ---------------------------------------------------------------------------
+devtools_java_version: "17"
+devtools_gradle_version: "8.10.2"
+
 devtools_install_git: true
 devtools_install_git_lfs: true
 devtools_install_make: true
 
 devtools_install_java: true
-devtools_java_package_debian: openjdk-17-jdk
-devtools_java_package_redhat: java-17-openjdk-devel
 
 devtools_install_maven: true
 
 devtools_install_gradle: true
-devtools_gradle_version: "8.10.2"
 devtools_gradle_install_root: /opt/gradle
 
 devtools_install_docker: true

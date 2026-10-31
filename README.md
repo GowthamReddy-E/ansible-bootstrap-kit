@@ -504,6 +504,28 @@ All roles expose their tunables via `roles/<role>/defaults/main.yml` — overrid
 per-environment in `inventories/<env>/group_vars/all/main.yml`, or per-host in
 `inventories/<env>/host_vars/<hostname>.yml`.
 
+### Where each pinned version lives
+
+Every version pin in this repo has exactly **one** place to edit — nothing
+is duplicated across files. If you need to bump something, this is the
+complete list:
+
+| What | File | Variable / line |
+|---|---|---|
+| Java version (devtools role) | `roles/devtools/defaults/main.yml` | `devtools_java_version` |
+| Gradle version (devtools role) | `roles/devtools/defaults/main.yml` | `devtools_gradle_version` |
+| Docker packages (devtools role) | `roles/devtools/defaults/main.yml` | `devtools_docker_packages` (unpinned — always installs latest stable from Docker's repo) |
+| ansible-core version (control node) | `requirements.txt` | the `ansible-core` line |
+| ansible-lint / yamllint versions (control node) | `requirements-dev.txt` | one line each |
+| Galaxy collection versions (`ansible.posix`, `community.general`) | `requirements.yml` | one entry each |
+
+The Java/Gradle variables flow into package names and download URLs via
+Jinja templating in `roles/devtools/tasks/`, so changing the variable is
+enough — nothing else needs touching. `requirements.txt`/`requirements-dev.txt`/`requirements.yml`
+stay as separate files because `pip` and `ansible-galaxy` are two different
+tools that each expect their own native format — that's normal, not
+drift risk, since each value still only exists in one file.
+
 ## Secrets
 
 Don't commit secrets. Use `ansible-vault` for anything sensitive
